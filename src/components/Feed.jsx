@@ -10,7 +10,7 @@ const Feed = () => {
   const feed = useSelector((store) => store.feed);
 
   const getFeed = async () => {
-    if (feed) return;
+    if (feed && feed.length > 0) return;
     try {
       const res = await axios.get(BASE_URL + "/user/feed", {
         withCredentials: true,
@@ -25,9 +25,7 @@ const Feed = () => {
     getFeed();
   }, []);
 
-  if (!feed) return null;
-
-  if (feed.length <= 0)
+  if (!feed || feed.length <= 0)
     return (
       <h1 className="flex justify-center m-52 text-3xl">No more users!!!!</h1>
     );

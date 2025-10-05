@@ -44,7 +44,7 @@ const EditProfile = ({ user }) => {
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-violet-400 bg-clip-text text-transparent mb-1">
                             Edit Profile
                         </h1>
-                        <p className="text-slate-400 text-xs">Update your profile information and see the changes in real-time</p>
+                        <p className="text-slate-400 text-xs">Update your profile information and see the changes in real-time. Fields marked with <span className="text-rose-400">*</span> are required: First Name, Last Name, Photo URL, and About.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-5 justify-center items-start">
@@ -57,7 +57,7 @@ const EditProfile = ({ user }) => {
                                     {/* First Name */}
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-300 mb-1">
-                                            First Name
+                                            First Name <span className="text-rose-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -66,12 +66,13 @@ const EditProfile = ({ user }) => {
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
                                             placeholder="Enter first name"
                                         />
+                                        <p className="text-xs text-slate-500 mt-0.5">Required field</p>
                                     </div>
 
                                     {/* Last Name */}
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-300 mb-1">
-                                            Last Name
+                                            Last Name <span className="text-rose-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -80,6 +81,7 @@ const EditProfile = ({ user }) => {
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
                                             placeholder="Enter last name"
                                         />
+                                        <p className="text-xs text-slate-500 mt-0.5">Required field</p>
                                     </div>
 
                                     {/* Age & Gender Row */}
@@ -128,7 +130,7 @@ const EditProfile = ({ user }) => {
                                     {/* Photo URL */}
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-300 mb-1">
-                                            Photo URL
+                                            Photo URL <span className="text-rose-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -137,6 +139,7 @@ const EditProfile = ({ user }) => {
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all"
                                             placeholder="https://example.com/photo.jpg"
                                         />
+                                        <p className="text-xs text-slate-500 mt-0.5">Required field</p>
                                     </div>
 
                                     {/* Skills */}
@@ -157,7 +160,7 @@ const EditProfile = ({ user }) => {
                                     {/* About */}
                                     <div>
                                         <label className="block text-xs font-semibold text-slate-300 mb-1">
-                                            About
+                                            About <span className="text-rose-400">*</span>
                                         </label>
                                         <textarea
                                             value={about}
@@ -165,6 +168,7 @@ const EditProfile = ({ user }) => {
                                             className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/20 transition-all resize-none h-16"
                                             placeholder="Tell us about yourself..."
                                         />
+                                        <p className="text-xs text-slate-500 mt-0.5">Required field</p>
                                     </div>
                                 </div>
 
