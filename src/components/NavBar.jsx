@@ -109,6 +109,23 @@ export const NavBar = () => {
 
                   <li className="mb-0.5">
                     <Link
+                      to="/feed"
+                      className="flex items-center justify-between hover:bg-blue-600/20 rounded-xl p-2.5 text-white transition-all duration-200 group border border-transparent hover:border-blue-500/40"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/30 to-cyan-600/30 flex items-center justify-center group-hover:from-blue-500/40 group-hover:to-cyan-600/40 transition-all">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v8H7V8z" />
+                          </svg>
+                        </div>
+                        <span className="font-semibold text-sm tracking-wide">Feed</span>
+                      </div>
+                      <span className="text-lg">🔥</span>
+                    </Link>
+                  </li>
+
+                  <li className="mb-0.5">
+                    <Link
                       to="/requests"
                       className="flex items-center justify-between hover:bg-amber-600/20 rounded-xl p-2.5 text-white transition-all duration-200 group border border-transparent hover:border-amber-500/40"
                     >
