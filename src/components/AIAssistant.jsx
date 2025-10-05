@@ -3,6 +3,10 @@ import { BASE_URL } from '../utils/constants';
 import axios from 'axios';
 import { Bot, Send, X, Trash2, Sparkles, Zap, Heart, Lightbulb, Copy, Check } from 'lucide-react';
 
+// Simple in-memory cache for AI responses
+const responseCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 const AIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -18,23 +22,17 @@ const AIAssistant = () => {
     { icon: Zap, text: "Profile optimization tips", color: "from-blue-500 to-cyan-500" },
   ];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Focus input when opened
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (isOpen) inputRef.current?.focus();
   }, [isOpen]);
 
-  const toggleAssistant = () => {
-    setIsOpen(!isOpen);
-  };
+  const toggleAssistant = () => setIsOpen(v => !v);
 
   const copyToClipboard = async (text, id) => {
     try {
@@ -47,64 +45,86 @@ const AIAssistant = () => {
   };
 
   const formatText = (text) => {
-    // Remove markdown symbols and format text cleanly
-    let formatted = text;
-    
-    // Remove ### headers and make them bold
+    if (!text && text !== '') return '';
+    let formatted = String(text);
+    formatted = formatted.replace(/```/g, ''); // strip backticks lightly
     formatted = formatted.replace(/###\s+(.+)/g, '$1');
-    
-    // Remove ** bold markers
     formatted = formatted.replace(/\*\*(.+?)\*\*/g, '$1');
-    
-    // Remove single * markers
     formatted = formatted.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '$1');
-    
-    // Remove --- horizontal rules
     formatted = formatted.replace(/^---+$/gm, '');
-    
-    // Clean up multiple newlines
     formatted = formatted.replace(/\n{3,}/g, '\n\n');
-    
     return formatted.trim();
   };
 
+  const clearChat = () => setMessages([]);
+
+  // Main submit handler — clears input immediately to match expected UX
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+    const text = inputValue.trim();
+    if (!text || isLoading) return;
 
-    const userMessage = { 
-      id: Date.now(), 
-      text: inputValue, 
+    // Add user message immediately
+    const userMessage = {
+      id: Date.now() + Math.random(),
+      text,
       sender: 'user',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
 
+    // Clear input immediately so the field is empty for the next message
+    setInputValue('');
+
+    setIsLoading(true);
     try {
-      const response = await axios.post(BASE_URL + '/ai-assistant/query', {
-        prompt: inputValue
-      }, {
-        withCredentials: true
+      // Cache check
+      const key = text.toLowerCase().trim();
+      if (responseCache.has(key)) {
+        const cached = responseCache.get(key);
+        if (Date.now() - cached.timestamp < CACHE_TTL) {
+          const aiMessage = {
+            id: Date.now() + Math.random(),
+            text: formatText(cached.response),
+            sender: 'ai',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setMessages(prev => [...prev, aiMessage]);
+          setIsLoading(false);
+          return;
+        } else {
+          responseCache.delete(key);
+        }
+      }
+
+      // API call
+      const res = await axios.post(`${BASE_URL}/ai-assistant/query`, { prompt: text }, {
+        withCredentials: true,
+        timeout: 30000
       });
 
-      const aiMessage = { 
-        id: Date.now() + 1, 
-        text: formatText(response.data.response), 
+      const aiRaw = res?.data?.response ?? '';
+      const aiText = formatText(aiRaw);
+
+      // Cache response
+      responseCache.set(key, { response: aiText, timestamp: Date.now() });
+
+      const aiMessage = {
+        id: Date.now() + Math.random(),
+        text: aiText,
         sender: 'ai',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      const errorMessage = { 
-        id: Date.now() + 1, 
-        text: 'Sorry, I encountered an error. Please try again.', 
+      console.error('AI Assistant Error:', error);
+      const errorMessage = {
+        id: Date.now() + Math.random(),
+        text: 'Sorry, I encountered an error. Please try again.',
         sender: 'ai',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, errorMessage]);
-      console.error('AI Assistant Error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -112,13 +132,7 @@ const AIAssistant = () => {
 
   const handleSuggestedPrompt = (promptText) => {
     setInputValue(promptText);
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  };
-
-  const clearChat = () => {
-    setMessages([]);
+    inputRef.current?.focus();
   };
 
   return (
@@ -157,10 +171,6 @@ const AIAssistant = () => {
             <div className="flex items-center space-x-3">
               <div className="relative bg-white/20 rounded-full p-2 backdrop-blur-sm">
                 <Bot className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400"></span>
-                </span>
               </div>
               <div>
                 <h3 className="font-bold text-base flex items-center gap-2">
@@ -222,7 +232,7 @@ const AIAssistant = () => {
                 </div>
               </div>
             ) : (
-              messages.map((message, index) => (
+              messages.map((message) => (
                 <div 
                   key={message.id} 
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -269,6 +279,7 @@ const AIAssistant = () => {
                 </div>
               ))
             )}
+
             {isLoading && (
               <div className="flex justify-start">
                 <div className="flex flex-col items-start">
@@ -302,6 +313,12 @@ const AIAssistant = () => {
                 placeholder="Type your message..."
                 className="flex-1 bg-gray-800 border border-gray-700 rounded-full px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-all"
                 disabled={isLoading}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
               />
               <button 
                 type="submit" 
@@ -318,24 +335,27 @@ const AIAssistant = () => {
         </div>
       )}
 
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px) scale(0.95);
+      <style>
+        {`
+          @keyframes slideUp {
+            from {
+              opacity: 0;
+              transform: translateY(20px) scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
           }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+          
+          .animate-slideUp {
+            animation: slideUp 0.3s ease-out;
           }
-        }
-        
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
 
 export default AIAssistant;
+
